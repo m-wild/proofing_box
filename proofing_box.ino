@@ -8,6 +8,7 @@
 #include "DHT.h"
 #include "SoftwareSerial.h"
 
+const boolean debug = false;
 const int pin_enco_1 = 2; // 2/3 are special pins. the encoder must be here
 const int pin_enco_2 = 3;
 const int pin_enco_sw = 4; // encoder switch
@@ -18,23 +19,27 @@ const int disp_brightness = 255;
 const int pin_dht = 12; // pin that the DHT is connected to
 const int dht_type = DHT22; // DHT 22 (AM2302)
 const int update_freq = 2000; // time to wait between loops
+const float enco_sensitivity = 0.25; // how much does the encoder need to turn to update 1 deg c
 
 char buff[10]; // display output buffer
 volatile int enco_prev = 0; // previous encoder direction
-volatile long enco_value = 25; // the current encoder value
-int target_temp;
+volatile long enco_value = 100; // the current encoder value
+volatile float target_temp;
+boolean setup_mode = false;
 
 SoftwareSerial disp(pin_disp_rx, pin_disp_tx); // the display
 
 DHT dht(pin_dht, dht_type); // the temperature sensor
 
 void setup() {
+  if (debug) {
+    Serial.begin(baud_rate);
+  }
+
   // init display
   disp.begin(baud_rate); 
   clearDisplay();
   setBrightness(disp_brightness);
-  delay(100);
-  disp.write("JELO");
 
   // init dht
   dht.begin();
@@ -53,32 +58,37 @@ void setup() {
 
 
   // init system
-  setTargetTemperature(enco_value);
+  target_temp = enco_value * enco_sensitivity;
+  writeTargetTemperature();
+  delay(3000);
 }
 
 void loop() {
 
-  if (enco_value != target_temp) {
-    // encoder was rotated
-    setTargetTemperature(enco_value);
-    
+  if (!digitalRead(pin_enco_sw)) {
+    setup_mode = !setup_mode;
   }
 
-
-  float humid = dht.readHumidity(); 
-  float temp = dht.readTemperature(false);
-
-  if (isnan(temp) || isnan(humid)) {
-    disp.print("Err ");
-    return;
+  if (setup_mode) {
+    writeTargetTemperature();
+    delay(update_freq);
+  
+  } else {
+    float humid = dht.readHumidity(); 
+    float temp = dht.readTemperature(false);
+  
+    if (isnan(temp) || isnan(humid)) {
+      disp.print("Err ");
+      return;
+    }
+  
+    // todo: should i use the heat_index or just the temp?
+    float heat_index = dht.computeHeatIndex(temp, humid, false);
+  
+    writeTemperature(heat_index);
+  
+    delay(update_freq);
   }
-
-  // todo: should i use the heat_index or just the temp?
-  float heat_index = dht.computeHeatIndex(temp, humid, false);
-
-  writeTemperature(heat_index);
-
-  delay(update_freq);
 }
 
 void writeTemperature(float temp) {
@@ -89,13 +99,15 @@ void writeTemperature(float temp) {
   disp.print(buff);
 }
 
-void setTargetTemperature(int target) {
-  target_temp = target;
+void writeTargetTemperature() {
+  if (debug) {
+    Serial.println(target_temp);
+  }
   setDecimals(0b010000);
-  sprintf(buff, "T %2d", target_temp);
+  sprintf(buff, "T %2d", (int) target_temp);
   disp.print(buff);
 
-  delay(2000);
+  delay(500);
 }
 
 void clearDisplay() {
@@ -113,6 +125,10 @@ void setDecimals(byte decimals) {
 }
 
 void updateEncoder() {
+  if (!setup_mode) {
+    return;
+  }
+  
   int msb = digitalRead(pin_enco_1);
   int lsb = digitalRead(pin_enco_2);
 
@@ -120,8 +136,11 @@ void updateEncoder() {
   int sum = (enco_prev << 2) | enco; // compare to the previous value
 
   // add or subtract based on rotation
-  if (sum == 0b1101 || sum == 0b0100 || sum == 0b0010 || sum == 0b1011) enco_value++;
-  if (sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000) enco_value--;
+  if (sum == 0b1101 || sum == 0b0100 || sum == 0b0010 || sum == 0b1011) { enco_value++; }
+  if (sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000) { enco_value--; }
 
   enco_prev = enco; // save for next time
+
+  target_temp = enco_value * enco_sensitivity;
+  writeTargetTemperature();
 }
