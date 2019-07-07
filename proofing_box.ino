@@ -21,6 +21,7 @@ const int dht_type = DHT22; // DHT 22 (AM2302)
 const int update_freq = 2000; // time to wait between loops
 const float enco_sensitivity = 0.25; // how much does the encoder need to turn to update 1 deg c
 const int pin_relay = 6; // pin the relay is connected to
+const float cushion_temp = 2.0; // how many degrees change is required to change the relay state
 
 char buff[10]; // display output buffer
 volatile int enco_prev = 0; // previous encoder direction
@@ -77,21 +78,26 @@ void loop() {
     writeTargetTemperature();
   
   } else {
-    float humid = dht.readHumidity(); 
     float temp = dht.readTemperature(false);
   
-    if (isnan(temp) || isnan(humid)) {
+    if (isnan(temp)) {
       disp.print("Err ");
       return;
     }
   
-    // todo: should i use the heat_index or just the temp?
-    float heat_index = dht.computeHeatIndex(temp, humid, false);
-  
-    writeTemperature(heat_index);
+    writeTemperature(temp);
 
-    switchRelay(heat_index <= target_temp);
-   
+    bool relayOn = relayState();
+    float cushion = cushion_temp / 2.0;
+    
+    float cushioned_target = relayOn
+      ? target_temp + cushion
+      : target_temp - cushion;
+
+    if (debug) { Serial.print("target: "); Serial.println(cushioned_target); }
+
+    switchRelay(temp <= cushioned_target);
+    
   }
   
   delay(update_freq);
@@ -103,6 +109,8 @@ void writeTemperature(float temp) {
   setDecimals(0b000010);
   sprintf(buff, "%4d", (int) (temp * 100)); 
   disp.print(buff);
+
+  if (debug) { Serial.print("current: "); Serial.println(temp); }
 }
 
 void writeTargetTemperature() {
@@ -159,4 +167,11 @@ void switchRelay(boolean on) {
     digitalWrite(pin_relay, LOW);
     if (debug) { Serial.println("relay: off"); }
   }
+}
+
+bool relayState() {
+  int value = digitalRead(pin_relay);
+  bool state = (value == HIGH);
+  if (debug) { Serial.println(state ? "relayState() -> on" : "relayState() -> off"); }
+  return state;  
 }
