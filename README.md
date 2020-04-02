@@ -2,6 +2,15 @@
 
 More info on [hackaday.io/project/165884-proofing-box](https://hackaday.io/project/165884-proofing-box)
 
+## Usage
+
+On startup, the screen will display the target temperature (in deg C) e.g. `t: 27` meaning the target temperature is 27deg C. It will then switch to displaying the current temperature e.g. `19.60` which will update ever ~1sec. 
+
+To set a new target, enter the settings mode by pressing (holding) the switch on the rotaty encoder. The screen will display `t: 27`, turn the encoder to set a new target, e.g. `t: 25`, then press (hold) the switch to return to normal monitoring mode.
+
+By default the relay will only change when the temperature goes significantly above or below the target (1deg C). This is to prevent the relay from constantly switching on and off.
+
+This can be changed by adjusting the `const float cushion_temp = 2.0;`. Note that this is a range, so 2.0 means +1 and -1, e.g. 26~28deg C.
 
 ## Wiring Diagram
 
