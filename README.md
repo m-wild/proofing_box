@@ -28,31 +28,34 @@ You use (almost) any pin you like for the components, just make sure to update t
 ```
 
 1. Ardunio
-  * GND to Bus GND
-  * 5v to Bus POS
+    * GND to Bus GND
+    * 5v to Bus POS
 2. 7-Segment Display
-  * GND to Bus GND
-  * VCC to Bus POS
-  * RX to Arduino 8
+    * GND to Bus GND
+    * VCC to Bus POS
+    * RX to Arduino 8
 3. DHT22
-  * DATA to Arduino 12
-  * GND to Bus GND
-  * VDD to Bus POS
+    * DATA to Arduino 12
+    * GND to Bus GND
+    * VDD to Bus POS
 4. Relay Module
-  * GND to Bus GND
-  * VCC to Bus POS
-  * IN to Arduino 6
+    * GND to Bus GND
+    * VCC to Bus POS
+    * IN to Arduino 6
 5. Rotary Encoder
-  * A to Arduino 2
-  * B to Arduino 3
-  * GND to Bus GND
-  * GND2 to Bus GND
-  * SW to Arduino 4
+    * A to Arduino 2
+    * B to Arduino 3
+    * GND to Bus GND
+    * GND2 to Bus GND
+    * SW to Arduino 4
 
 ## Heating Pad
 
 ```
-Warning: when you are making projects that are connected to mains voltage, you really need to know what you are doing, otherwise you may shock yourself. This is a serious topic, and we want you to be safe. If you’re not 100% sure what you are doing, do yourself a favor and don’t touch anything. Ask someone who knows!
+Warning: when you are making projects that are connected to mains voltage, 
+you really need to know what you are doing, otherwise you may shock yourself. 
+This is a serious topic, and we want you to be safe. If you’re not 100% sure 
+what you are doing, do yourself a favor and don’t touch anything. Ask someone who knows!
 ```
 
 You need to slice the cable and cut the single phase line (L), in my case this was the brown cable. One end should connect to COM (common), and the other to NO (nominally open).
