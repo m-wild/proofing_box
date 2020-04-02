@@ -51,12 +51,9 @@ You use (almost) any pin you like for the components, just make sure to update t
 
 ## Heating Pad
 
-```
-Warning: when you are making projects that are connected to mains voltage, 
-you really need to know what you are doing, otherwise you may shock yourself. 
-This is a serious topic, and we want you to be safe. If you’re not 100% sure 
-what you are doing, do yourself a favor and don’t touch anything. Ask someone who knows!
-```
+
+> Warning: when you are making projects that are connected to mains voltage, you really need to know what you are doing, otherwise you may shock yourself. This is a serious topic, and we want you to be safe. If you’re not 100% sure what you are doing, do yourself a favor and don’t touch anything. Ask someone who knows!
+
 
 You need to slice the cable and cut the single phase line (L), in my case this was the brown cable. One end should connect to COM (common), and the other to NO (nominally open).
 The neutral (N) cable should not be cut.
@@ -78,3 +75,10 @@ v
             Relay
 
 ```
+
+
+## The Easy Way
+
+Thanks to [@greenpossum](https://hackaday.io/greenpossum) on hackaday.
+
+> If you ever need more, you might like to know prebuilt modules with everything needed except the case, are a thing. e.g.: https://www.ebay.com.au/itm/DC12V-W1209-Digital-Thermostat-Temperature-Controller-NTC-1-10K-3950-Cable/263634079376 The STM8 controller on these gadgets can be reprogrammed: https://hackaday.io/project/16097-eforth-for-cheap-stm8s-gadgets
