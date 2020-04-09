@@ -11,12 +11,12 @@
 const boolean debug = false;
 const int pin_enco_1 = 2; // 2/3 are special pins. the encoder must be here
 const int pin_enco_2 = 3;
-const int pin_enco_sw = 4; // encoder switch
-const int pin_disp_tx = 8; // pin that the display RX is connected to.
+const int pin_enco_sw = 7; // encoder switch
+const int pin_disp_tx = 4; // pin that the display RX is connected to.
 const int pin_disp_rx = 7; // needed to create the software serial. doesn't need physical connection
 const int baud_rate = 9600; // set correct baud rate. default of s7s is 9600
 const int disp_brightness = 255;
-const int pin_dht = 12; // pin that the DHT is connected to
+const int pin_dht = 5; // pin that the DHT is connected to
 const int dht_type = DHT22; // DHT 22 (AM2302)
 const int update_freq = 2000; // time to wait between loops
 const float enco_sensitivity = 0.25; // how much does the encoder need to turn to update 1 deg c
