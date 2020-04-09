@@ -18,6 +18,17 @@ This can be changed by adjusting the `const float cushion_temp = 2.0;`. Note tha
 
 [Wiring Diagram on circuit.io](https://www.circuito.io/app?components=512,10167,11021,11441,860025,3061987). Circuit.io also has wiring instructions, juct click "Project Guide" up the top.
 
+## Compiling & Running the Firmware
+
+You'll need to install a library for the DHT component. This can be done from the Arduino IDE. `Tools > Manage Libraries`
+
+* DHT sensor library by Adafruit
+
+Then click `Sketch > Verify/Compile`.
+
+Assuming that worked, you can now upload the firmware to the Arduino. Click `Sketch > Upload`.
+
+
 ## Component Documentation
 
 * [Sparkfun 7-Segment Display](https://learn.sparkfun.com/tutorials/using-the-serial-7-segment-display/all)
@@ -30,10 +41,10 @@ This can be changed by adjusting the `const float cushion_temp = 2.0;`. Note tha
 Note: the DHT22 I brought has an integrated 10K ohm resistor, so I did not have to wire that (unlike the diagram above).
 "Bus GND" and "Bus POS" are the positive and ground rails on the Breadboard. 
 
-You use (almost) any pin you like for the components, just make sure to update the corresponding const in `proofing_box.ino`. For example, to connect the DHT22 to pin 11, you would need to make the following change
+You use (almost) any pin you like for the components, just make sure to update the corresponding const in `proofing_box.ino`. For example, to connect the DHT22 to pin 9, you would need to make the following change
 ```diff
-- const int pin_dht = 12; // pin that the DHT is connected to
-+ const int pin_dht = 11; // pin that the DHT is connected to
+- const int pin_dht = 5; // pin that the DHT is connected to
++ const int pin_dht = 9; // pin that the DHT is connected to
 ```
 
 1. Ardunio
@@ -42,9 +53,9 @@ You use (almost) any pin you like for the components, just make sure to update t
 2. 7-Segment Display
     * GND to Bus GND
     * VCC to Bus POS
-    * RX to Arduino 8
+    * RX to Arduino 4
 3. DHT22
-    * DATA to Arduino 12
+    * DATA to Arduino 5
     * GND to Bus GND
     * VDD to Bus POS
 4. Relay Module
@@ -56,7 +67,7 @@ You use (almost) any pin you like for the components, just make sure to update t
     * B to Arduino 3
     * GND to Bus GND
     * GND2 to Bus GND
-    * SW to Arduino 4
+    * SW to Arduino 7
 
 ## Heating Pad
 
