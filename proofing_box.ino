@@ -5,7 +5,7 @@
 // a heating pad connected to a relay.
 //
 
-#include "DHT.h"
+#include "DHT.h" // Adafruit DHT Sensor Library - tested with v1.3.10
 #include "SoftwareSerial.h"
 
 const boolean debug = false;
@@ -18,7 +18,7 @@ const int baud_rate = 9600; // set correct baud rate. default of s7s is 9600
 const int disp_brightness = 255;
 const int pin_dht = 5; // pin that the DHT is connected to
 const int dht_type = DHT22; // DHT 22 (AM2302)
-const int update_freq = 2000; // time to wait between loops
+const int refresh_freq = 100; // time to wait between loops
 const float enco_sensitivity = 0.25; // how much does the encoder need to turn to update 1 deg c
 const int pin_relay = 6; // pin the relay is connected to
 const float cushion_temp = 2.0; // how many degrees change is required to change the relay state
@@ -26,8 +26,10 @@ const float cushion_temp = 2.0; // how many degrees change is required to change
 char buff[10]; // display output buffer
 volatile int enco_prev = 0; // previous encoder direction
 volatile long enco_value = 100; // the current encoder value
-volatile float target_temp;
-boolean setup_mode = false;
+volatile float target_temp = 0; // the target temperature
+boolean setup_mode = false; // are we currently in setup mode, or normal mode?
+unsigned long time_now = 0; // current uptime in ms
+float current_temp = 0; // current temperature
 
 SoftwareSerial disp(pin_disp_rx, pin_disp_tx); // the display
 
@@ -69,48 +71,57 @@ void setup() {
 }
 
 void loop() {
-
+  // check if the encoder switch is being pressed and enter or exit setup_mode
   if (!digitalRead(pin_enco_sw)) {
     setup_mode = !setup_mode;
+    updateDisplay();
+    delay(1000); // prevent immediately switching back to the other mode
   }
 
-  if (setup_mode) {
-    writeTargetTemperature();
+  if (!setup_mode) {
+    current_temp = dht.readTemperature(false);
   
-  } else {
-    float temp = dht.readTemperature(false);
-  
-    if (isnan(temp)) {
+    if (isnan(current_temp)) {
       disp.print("Err ");
       return;
     }
   
-    writeTemperature(temp);
-
-    bool relayOn = relayState();
+    // we don't want the heater constantly flicking on and off, here we check the
+    // current state and compute a "cushioned" target before comparing
     float cushion = cushion_temp / 2.0;
     
-    float cushioned_target = relayOn
+    float cushioned_target = relayState()
       ? target_temp + cushion
       : target_temp - cushion;
-
-    if (debug) { Serial.print("target: "); Serial.println(cushioned_target); }
-
-    switchRelay(temp <= cushioned_target);
-    
-  }
   
-  delay(update_freq);
+    if (debug) { Serial.print("target: "); Serial.println(cushioned_target); }
+  
+    switchRelay(current_temp <= cushioned_target);
+  }
+
+  // only refresh the display periodically to prevent flicker
+  if (millis() - time_now > refresh_freq) {
+    time_now = millis();
+    updateDisplay();
+  }
 }
 
-void writeTemperature(float temp) {
+void updateDisplay() {
+  if (setup_mode) {
+    writeTargetTemperature();
+  } else {
+    writeCurrentTemperature();
+  }
+}
+
+void writeCurrentTemperature() {
   // temp is a float. we need an int (well actually a string) to send to the display
   // we multiply by 100 and put a decimal place at position 2
   setDecimals(0b000010);
-  sprintf(buff, "%4d", (int) (temp * 100)); 
+  sprintf(buff, "%4d", (int) (current_temp * 100)); 
   disp.print(buff);
 
-  if (debug) { Serial.print("current: "); Serial.println(temp); }
+  if (debug) { Serial.print("current: "); Serial.println(current_temp); }
 }
 
 void writeTargetTemperature() {
@@ -120,8 +131,6 @@ void writeTargetTemperature() {
   setDecimals(0b010000);
   sprintf(buff, "T %2d", (int) target_temp);
   disp.print(buff);
-
-  delay(500);
 }
 
 void clearDisplay() {
@@ -156,7 +165,6 @@ void updateEncoder() {
   enco_prev = enco; // save for next time
 
   target_temp = enco_value * enco_sensitivity;
-  writeTargetTemperature();
 }
 
 void switchRelay(boolean on) {
